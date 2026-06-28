@@ -1,0 +1,13 @@
+main:
+  push:
+    - imports: https://cnb.cool/miaoduck/Boke/-/blob/main/envs.yml
+      stages:
+        - name: Build Hugo Site
+          image: ubuntu:latest
+          script: |
+            apt-get update && apt-get install -y curl
+            bash build.sh
+        - name: Deploy to EdgeOne Makers
+          image: node:20
+          script: |
+            npx edgeone makers deploy ./public -n blog -t $EDGEONE_API_TOKEN
