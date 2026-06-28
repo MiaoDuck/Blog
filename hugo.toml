@@ -1,15 +1,13 @@
 # 站点基础配置
 baseURL = "https://blog.mkka27834.workers.dev/"
 defaultContentLanguage = "zh-cn"
-locale = "zh-cn"
 title = "技术笔记"
-theme = "PaperMod"
+theme = "hextra"
 enableRobotsTXT = true
 enableEmoji = true
+hasCJKLanguage = true
 buildDrafts = false
-buildFuture = false
-enableGitInfo = false
-paginate = 10
+enableInlineShortcodes = true
 
 # Markdown 渲染
 [markup]
@@ -17,73 +15,96 @@ paginate = 10
     [markup.goldmark.renderer]
       unsafe = true
   [markup.highlight]
-    style = "monokai"
-    lineNos = false
-    noClasses = true
+    noClasses = false
+
+# 输出格式
+[outputs]
+  home = ["HTML", "RSS"]
+
+# 顶部导航菜单
+[[menu.main]]
+  identifier = "docs"
+  name = "知识库"
+  pageRef = "/docs"
+  weight = 1
+
+[[menu.main]]
+  identifier = "blog"
+  name = "博客"
+  pageRef = "/blog"
+  weight = 2
+
+[[menu.main]]
+  name = "搜索"
+  weight = 3
+  [menu.main.params]
+    type = "search"
+
+[[menu.main]]
+  name = "GitHub"
+  weight = 4
+  url = "https://github.com/MiaoDuck/Blog"
+  [menu.main.params]
+    icon = "github"
 
 # 主题参数
 [params]
-  env = "production"
   description = "记录与分享后端、架构与基础设施的学习笔记"
-  author = "博主"
-  defaultTheme = "auto"
-  ShowReadingTime = true
-  ShowWordCount = true
-  ShowPostNavLinks = true
-  ShowBreadCrumbs = true
-  ShowCodeCopyButtons = true
-  ShowToc = true
-  TocOpen = false
-  disableSpecial1stPost = true
-  disableHLJS = true
-  hideMeta = false
-  hideSummary = false
-  useHugoToc = true
 
-  [params.homeInfoParams]
-    Title = "技术笔记"
-    Content = "记录与分享后端、架构与基础设施的学习笔记。"
+  # 顶部导航栏
+  [params.navbar]
+    displayTitle = true
+    displayLogo = false
+    width = "wide"
 
-  [[params.socialIcons]]
-    name = "github"
-    url = "https://github.com/"
+  # 主题切换
+  [params.theme]
+    default = "system"
+    displayToggle = true
 
-# 输出格式：JSON 供搜索使用
-[outputs]
-  home = ["HTML", "RSS", "JSON"]
+  # 页脚
+  [params.footer]
+    enable = true
+    displayCopyright = true
+    displayPoweredBy = false
+    width = "normal"
 
-# 分类法
-[taxonomies]
-  tag = "tags"
-  category = "categories"
+  # 搜索
+  [params.search]
+    enable = true
+    type = "flexsearch"
+    [params.search.flexsearch]
+      index = "content"
+      tokenize = "forward"
 
-# 顶部导航
-[[menu.main]]
-  identifier = "posts"
-  name = "文章"
-  url = "/posts/"
-  weight = 10
+  # 博客列表配置
+  [params.blog]
+    [params.blog.list]
+      displayTags = true
+      sortBy = "date"
+      sortOrder = "desc"
+      pagerSize = 20
+    [params.blog.article]
+      displayPagination = true
 
-[[menu.main]]
-  identifier = "archives"
-  name = "归档"
-  url = "/archives/"
-  weight = 20
+  # 代码复制
+  [params.highlight]
+    [params.highlight.copy]
+      enable = true
+      display = "hover"
 
-[[menu.main]]
-  identifier = "categories"
-  name = "分类"
-  url = "/categories/"
-  weight = 30
+  # 页面宽度
+  [params.page]
+    width = "normal"
 
-[[menu.main]]
-  identifier = "tags"
-  name = "标签"
-  url = "/tags/"
-  weight = 40
+  # 目录显示标签
+  [params.toc]
+    displayTags = true
 
-[[menu.main]]
-  identifier = "search"
-  name = "搜索"
-  url = "/search/"
-  weight = 50
+  # 图片缩放
+  [params.imageZoom]
+    enable = true
+
+  # 评论（默认关闭）
+  [params.comments]
+    enable = false
