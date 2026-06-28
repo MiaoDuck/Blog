@@ -1,0 +1,89 @@
+# 站点基础配置
+baseURL = "https://your-blog.edgeone.app/"
+defaultContentLanguage = "zh-cn"
+locale = "zh-cn"
+title = "技术笔记"
+theme = "PaperMod"
+enableRobotsTXT = true
+enableEmoji = true
+buildDrafts = false
+buildFuture = false
+enableGitInfo = false
+paginate = 10
+
+# Markdown 渲染
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    style = "monokai"
+    lineNos = false
+    noClasses = true
+
+# 主题参数
+[params]
+  env = "production"
+  description = "记录与分享后端、架构与基础设施的学习笔记"
+  author = "博主"
+  defaultTheme = "auto"
+  ShowReadingTime = true
+  ShowWordCount = true
+  ShowPostNavLinks = true
+  ShowBreadCrumbs = true
+  ShowCodeCopyButtons = true
+  ShowToc = true
+  TocOpen = false
+  disableSpecial1stPost = true
+  disableHLJS = true
+  hideMeta = false
+  hideSummary = false
+  useHugoToc = true
+
+  [params.homeInfoParams]
+    Title = "技术笔记"
+    Content = "记录与分享后端、架构与基础设施的学习笔记。"
+
+  [[params.socialIcons]]
+    name = "github"
+    url = "https://github.com/"
+
+# 输出格式：JSON 供搜索使用
+[outputs]
+  home = ["HTML", "RSS", "JSON"]
+
+# 分类法
+[taxonomies]
+  tag = "tags"
+  category = "categories"
+
+# 顶部导航
+[[menu.main]]
+  identifier = "posts"
+  name = "文章"
+  url = "/posts/"
+  weight = 10
+
+[[menu.main]]
+  identifier = "archives"
+  name = "归档"
+  url = "/archives/"
+  weight = 20
+
+[[menu.main]]
+  identifier = "categories"
+  name = "分类"
+  url = "/categories/"
+  weight = 30
+
+[[menu.main]]
+  identifier = "tags"
+  name = "标签"
+  url = "/tags/"
+  weight = 40
+
+[[menu.main]]
+  identifier = "search"
+  name = "搜索"
+  url = "/search/"
+  weight = 50

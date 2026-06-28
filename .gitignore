@@ -1,0 +1,13 @@
+# Hugo 构建产物
+/public/
+/resources/_gen/
+.hugo_build.lock
+
+# 依赖
+node_modules/
+
+# 系统/编辑器
+.DS_Store
+*.swp
+.idea/
+.vscode/
