@@ -1,5 +1,5 @@
 # 站点基础配置
-baseURL = "https://blog.mika27834.workers.dev/"
+baseURL = "https://blog.mkka27834.workers.dev/"
 defaultContentLanguage = "zh-cn"
 locale = "zh-cn"
 title = "技术笔记"
