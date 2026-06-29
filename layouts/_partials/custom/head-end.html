@@ -26,3 +26,13 @@
     }
   })();
 </script>
+
+{{- /* 导航加速：instant.page 悬停预获取 + Speculation Rules 后台预渲染 */ -}}
+<script type="module" src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instant.page.min.js"></script>
+<script type="speculationrules">
+{
+  "prerender": [
+    { "where": { "href_matches": "/blog/**" }, "eagerness": "moderate" }
+  ]
+}
+</script>
