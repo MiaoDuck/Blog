@@ -21,28 +21,22 @@ enableInlineShortcodes = true
 [outputs]
   home = ["HTML", "RSS"]
 
-# 顶部导航菜单
+# 顶部导航菜单（直接显示知识库各栏目）
 [[menu.main]]
-  identifier = "docs"
-  name = "知识库"
-  pageRef = "/docs"
+  identifier = "network"
+  name = "网络"
+  pageRef = "/docs/network"
   weight = 1
 
 [[menu.main]]
-  identifier = "blog"
-  name = "博客"
-  pageRef = "/blog"
-  weight = 2
-
-[[menu.main]]
   name = "搜索"
-  weight = 3
+  weight = 2
   [menu.main.params]
     type = "search"
 
 [[menu.main]]
   name = "GitHub"
-  weight = 4
+  weight = 3
   url = "https://github.com/MiaoDuck/Blog"
   [menu.main.params]
     icon = "github"
@@ -69,13 +63,14 @@ enableInlineShortcodes = true
     displayPoweredBy = false
     width = "normal"
 
-  # 搜索
+  # 搜索（使用本地 FlexSearch 文件，避免 CDN 访问问题）
   [params.search]
     enable = true
     type = "flexsearch"
     [params.search.flexsearch]
       index = "content"
       tokenize = "forward"
+      js = "js/flexsearch.bundle.min.js"
 
   # 博客列表配置
   [params.blog]
