@@ -10,4 +10,4 @@ main:
         - name: Deploy to EdgeOne Makers
           image: node:20
           script: |
-            npx edgeone makers deploy ./public -n blog -t $EDGEONE_API_TOKEN
+            npx edgeone makers deploy ./public -n blog-ducktech -t $EDGEONE_API_TOKEN
