@@ -14,7 +14,7 @@ description = '记录与分享后端、架构与基础设施的学习笔记'
   </div>
 </div>
 
-{{/* 未来新增栏目时，在此处添加卡片，格式如下：
+<!-- {{/* 未来新增栏目时，在此处添加卡片，格式如下：
 <div class="series-card" onclick="window.location.href='/docs/<栏目>/'">
   <div class="series-icon">图标</div>
   <div class="series-content">
@@ -23,7 +23,7 @@ description = '记录与分享后端、架构与基础设施的学习笔记'
     <span class="series-count">已收录 N 篇</span>
   </div>
 </div>
-*/}}
+*/}} -->
 
 </div>
 
