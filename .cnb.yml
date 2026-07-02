@@ -1,13 +1,47 @@
 main:
   push:
-    - imports: https://cnb.cool/miaoduck/Boke/-/blob/main/envs.yml
+    - imports: https://cnb.cool/miaoduck/KeyBase/-/blob/main/envs.yml
       stages:
         - name: Build Hugo Site
           image: ubuntu:latest
           script: |
             apt-get update && apt-get install -y curl
             bash build.sh
+
         - name: Deploy to EdgeOne Makers
           image: node:20
           script: |
-            npx edgeone makers deploy ./public -n blog-ducktech -e production -t $EDGEONE_API_TOKEN
+            npx edgeone makers deploy ./public \
+              -n blog-ducktech \
+              -e production \
+              -t "$EDGEONE_API_TOKEN"
+
+        - name: Push to GitHub
+          image: ubuntu:latest
+          script: |
+            set -e
+            apt-get update && apt-get install -y git
+
+            # 全局git配置
+            git config --global user.name "CNB Bot"
+            git config --global user.email "bot@cnb.cool"
+
+            # 克隆目标GitHub仓库
+            git clone https://$GITHUB_KEY@github.com/MiaoDuck/Blog repo
+            cd repo
+
+            # 添加源仓库CNB为远程源
+            git remote add cnb https://cnb.cool/miaoduck/Boke
+
+            # 拉取CNB所有分支代码（只拉取增量变更）
+            git fetch cnb
+
+            # 合并CNB main分支到当前main，只合并差异文件
+            git merge cnb/main --allow-unrelated-histories
+
+            # 提交合并变更（无改动会自动跳过）
+            git add .
+            git commit -m "Sync from CNB: $(date +%F_%T)" || true
+
+            # 增量推送到GitHub，仅推送新增提交
+            git push origin main
