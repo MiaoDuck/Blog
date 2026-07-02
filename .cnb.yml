@@ -25,7 +25,7 @@ main:
             git config --global user.email "bot@cnb.cool"
 
             # 克隆 GitHub 仓库（使用 PAT）
-            git clone https://$GITHUB_KEY@github.com/miaoduck/Boke.git github-repo
+            git clone https://$GITHUB_KEY@github.com/MiaoDuck/Blog github-repo
             cd github-repo
 
             # 同步 public 内容
