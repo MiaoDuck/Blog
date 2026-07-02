@@ -20,28 +20,28 @@ main:
           image: ubuntu:latest
           script: |
             set -e
-
-            # 安装 git
             apt-get update && apt-get install -y git
 
-            # Git 全局配置
+            # 全局git配置
             git config --global user.name "CNB Bot"
             git config --global user.email "bot@cnb.cool"
 
-            # 1️⃣ 克隆 CNB 仓库（源仓库）
-            git clone https://cnb.cool/miaoduck/Boke cnb-repo
-            cd cnb-repo
+            # 克隆目标GitHub仓库
+            git clone https://$GITHUB_KEY@github.com/MiaoDuck/Blog repo
+            cd repo
 
-            # 2️⃣ 克隆 GitHub 仓库（目标仓库）
-            cd ..
-            git clone https://$GITHUB_KEY@github.com/MiaoDuck/Blog github-repo
-            cd github-repo
+            # 添加源仓库CNB为远程源
+            git remote add cnb https://cnb.cool/miaoduck/Boke
 
-            # 3️⃣ 同步内容
-            rm -rf *
-            cp -r ../cnb-repo/* .
+            # 拉取CNB所有分支代码（只拉取增量变更）
+            git fetch cnb
 
-            # 4️⃣ 提交并推送
+            # 合并CNB main分支到当前main，只合并差异文件
+            git merge cnb/main --allow-unrelated-histories
+
+            # 提交合并变更（无改动会自动跳过）
             git add .
-            git commit -m "Deploy: $(date +%F_%T)" || echo "No changes to commit"
+            git commit -m "Sync from CNB: $(date +%F_%T)" || true
+
+            # 增量推送到GitHub，仅推送新增提交
             git push origin main
