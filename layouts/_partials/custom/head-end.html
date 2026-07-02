@@ -1,0 +1,38 @@
+{{- /* Mermaid.js 图表支持 */ -}}
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+  (function () {
+    function pickTheme() {
+      var saved = localStorage.getItem('pref-theme');
+      if (saved === 'dark') return 'dark';
+      if (saved === 'light') return 'default';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default';
+    }
+    function run() {
+      if (window.mermaid) {
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: pickTheme(),
+          securityLevel: 'loose',
+          flowchart: { useMaxWidth: true, htmlLabels: true }
+        });
+        mermaid.run({ querySelector: '.mermaid' });
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', run);
+    } else {
+      run();
+    }
+  })();
+</script>
+
+{{- /* 导航加速：instant.page 悬停预获取 + Speculation Rules 后台预渲染 */ -}}
+<script type="module" src="https://cdn.jsdelivr.net/npm/instant.page@5.2.0/instant.page.min.js"></script>
+<script type="speculationrules">
+{
+  "prerender": [
+    { "where": { "href_matches": "/blog/**" }, "eagerness": "moderate" }
+  ]
+}
+</script>
