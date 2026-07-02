@@ -19,19 +19,29 @@ main:
         - name: Push to GitHub
           image: ubuntu:latest
           script: |
+            set -e
+
+            # 安装 git
             apt-get update && apt-get install -y git
 
+            # Git 全局配置
             git config --global user.name "CNB Bot"
             git config --global user.email "bot@cnb.cool"
 
-            # 克隆 GitHub 仓库（使用 PAT）
+            # 1️⃣ 克隆 CNB 仓库（源仓库）
+            git clone https://cnb.cool/miaoduck/Boke cnb-repo
+            cd cnb-repo
+
+            # 2️⃣ 克隆 GitHub 仓库（目标仓库）
+            cd ..
             git clone https://$GITHUB_KEY@github.com/MiaoDuck/Blog github-repo
             cd github-repo
 
-            # 同步 public 内容
+            # 3️⃣ 同步内容
             rm -rf *
-            cp -r ../public/* .
+            cp -r ../cnb-repo/* .
 
+            # 4️⃣ 提交并推送
             git add .
             git commit -m "Deploy: $(date +%F_%T)" || echo "No changes to commit"
             git push origin main
