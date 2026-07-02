@@ -1,13 +1,38 @@
 main:
   push:
     - imports: https://cnb.cool/miaoduck/Boke/-/blob/main/envs.yml
+    - imports: https://cnb.cool/miaoduck/KeyBase/-/blob/main/envs.yml
       stages:
         - name: Build Hugo Site
           image: ubuntu:latest
           script: |
             apt-get update && apt-get install -y curl
             bash build.sh
+
         - name: Deploy to EdgeOne Makers
           image: node:20
           script: |
-            npx edgeone makers deploy ./public -n blog-ducktech -e production -t $EDGEONE_API_TOKEN
+            npx edgeone makers deploy ./public \
+              -n blog-ducktech \
+              -e production \
+              -t "$EDGEONE_API_TOKEN"
+
+        - name: Push to GitHub
+          image: ubuntu:latest
+          script: |
+            apt-get update && apt-get install -y git
+
+            git config --global user.name "CNB Bot"
+            git config --global user.email "bot@cnb.cool"
+
+            # 克隆 GitHub 仓库（使用 PAT）
+            git clone https://$GITHUB_KEY@github.com/miaoduck/Boke.git github-repo
+            cd github-repo
+
+            # 同步 public 内容
+            rm -rf *
+            cp -r ../public/* .
+
+            git add .
+            git commit -m "Deploy: $(date +%F_%T)" || echo "No changes to commit"
+            git push origin main
