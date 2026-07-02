@@ -1,0 +1,264 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>技术笔记 – 网络</title><link>https://blog.mkka27834.workers.dev/tags/%E7%BD%91%E7%BB%9C/</link><description>Recent content in 网络 on 技术笔记</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Sun, 28 Jun 2026 21:00:00 +0800</lastBuildDate><atom:link href="https://blog.mkka27834.workers.dev/tags/%E7%BD%91%E7%BB%9C/index.xml" rel="self" type="application/rss+xml"/><item><title>CDN 内容分发网络详解</title><link>https://blog.mkka27834.workers.dev/docs/network/cdn/</link><pubDate>Sun, 28 Jun 2026 21:00:00 +0800</pubDate><guid>https://blog.mkka27834.workers.dev/docs/network/cdn/</guid><description>
+&lt;h2&gt;1. 概述与核心作用&lt;span class="hx:absolute hx:-mt-20" id="1-概述与核心作用"&gt;&lt;/span&gt;
+&lt;a href="#1-%e6%a6%82%e8%bf%b0%e4%b8%8e%e6%a0%b8%e5%bf%83%e4%bd%9c%e7%94%a8" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;CDN 是一组分布在不同地理位置的缓存服务器集群，通过将内容缓存到离用户更近的节点，使用户就近获取数据。&lt;/p&gt;
+&lt;p&gt;CDN 主要解决两类问题：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;读延迟&lt;/strong&gt;：静态资源从就近节点获取，减少跨地域、跨运营商的网络往返&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;带宽瓶颈&lt;/strong&gt;：边缘节点承担大部分请求，降低回源流量，减轻源站负载与主干链路压力&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;对源站而言，CDN 相当于一层&amp;quot;前置缓存 + 流量卸载&amp;quot;设施；对用户而言，则是更近、更快的内容获取入口。&lt;/p&gt;
+&lt;h2&gt;2. CDN 工作原理&lt;span class="hx:absolute hx:-mt-20" id="2-cdn-工作原理"&gt;&lt;/span&gt;
+&lt;a href="#2-cdn-%e5%b7%a5%e4%bd%9c%e5%8e%9f%e7%90%86" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;理解 CDN 的关键在于一次完整请求的调度过程。当用户访问接入 CDN 的资源时，流程如下：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;用户发起请求（如访问 &lt;code&gt;img.example.com&lt;/code&gt;）&lt;/li&gt;
+&lt;li&gt;DNS 解析时，域名的 CNAME 指向 CDN 调度系统&lt;/li&gt;
+&lt;li&gt;GSLB（全局负载均衡）根据用户位置、节点负载、链路质量等，返回最优边缘节点的 IP&lt;/li&gt;
+&lt;li&gt;用户直接向该边缘节点发起请求&lt;/li&gt;
+&lt;li&gt;节点判断缓存是否命中：命中则直接返回；未命中则回源拉取，再缓存并返回&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="mermaid"&gt;
+flowchart TD
+A[用户请求 img.example.com] --&gt; B[DNS 解析]
+B --&gt; C{CNAME 是否指向 CDN}
+C --&gt;|否| D[直接回源站]
+C --&gt;|是| E[GSLB 智能调度]
+E --&gt; F[返回最近边缘节点 IP]
+F --&gt; G[用户请求边缘节点]
+G --&gt; H{缓存是否命中}
+H --&gt;|命中| I[返回缓存内容]
+H --&gt;|未命中| J[回源拉取]
+J --&gt; K[源站返回内容]
+K --&gt; L[边缘节点缓存并返回]
+I --&gt; M[用户获取资源]
+L --&gt; M
+&lt;/div&gt;
+&lt;h2&gt;3. 节点层级架构&lt;span class="hx:absolute hx:-mt-20" id="3-节点层级架构"&gt;&lt;/span&gt;
+&lt;a href="#3-%e8%8a%82%e7%82%b9%e5%b1%82%e7%ba%a7%e6%9e%b6%e6%9e%84" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;CDN 节点并非扁平的一层，而是分层部署，以进一步降低源站压力：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;边缘节点（Edge Node）&lt;/strong&gt;：直接面向用户，提供就近缓存与响应&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;中层节点 / 回源盾（Mid-tier / Origin Shield）&lt;/strong&gt;：位于边缘与源站之间，边缘未命中时统一回源到回源盾，由回源盾合并请求再回源，避免大量边缘节点同时回源打垮源站&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;源站（Origin Server）&lt;/strong&gt;：内容的权威来源&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="mermaid"&gt;
+flowchart TD
+A[源站 Origin] --&gt; B[回源盾 Origin Shield]
+B --&gt; C1[边缘节点 Edge 1]
+B --&gt; C2[边缘节点 Edge 2]
+B --&gt; C3[边缘节点 Edge N]
+C1 --&gt; D1[用户群 1]
+C2 --&gt; D2[用户群 2]
+C3 --&gt; D3[用户群 N]
+&lt;/div&gt;
+&lt;p&gt;回源盾的核心价值是&lt;strong&gt;收敛回源请求&lt;/strong&gt;：即使上千个边缘节点同时未命中，也只有回源盾向源站发起一次请求，其余在回源盾层命中。&lt;/p&gt;
+&lt;h2&gt;4. 缓存机制&lt;span class="hx:absolute hx:-mt-20" id="4-缓存机制"&gt;&lt;/span&gt;
+&lt;a href="#4-%e7%bc%93%e5%ad%98%e6%9c%ba%e5%88%b6" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h3&gt;4.1 三种缓存更新方式&lt;span class="hx:absolute hx:-mt-20" id="41-三种缓存更新方式"&gt;&lt;/span&gt;
+&lt;a href="#41-%e4%b8%89%e7%a7%8d%e7%bc%93%e5%ad%98%e6%9b%b4%e6%96%b0%e6%96%b9%e5%bc%8f" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;CDN 缓存的更新与维护有三种典型模式，适用场景各异：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;模式&lt;/th&gt;
+&lt;th&gt;触发方&lt;/th&gt;
+&lt;th&gt;工作方式&lt;/th&gt;
+&lt;th&gt;适用场景&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;Push（主动推送）&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;源站&lt;/td&gt;
+&lt;td&gt;源站主动将内容推送到各节点&lt;/td&gt;
+&lt;td&gt;大文件预热、重要资源提前分发&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;Pull（被动拉取）&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;用户请求&lt;/td&gt;
+&lt;td&gt;节点未命中时回源拉取并缓存&lt;/td&gt;
+&lt;td&gt;默认模式，绝大多数静态资源&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;Purge / Invalidation（主动失效）&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;运维/源站&lt;/td&gt;
+&lt;td&gt;通知节点清除旧缓存，下次请求触发回源&lt;/td&gt;
+&lt;td&gt;内容更新后立即生效&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Push 与 Pull 并非互斥，常配合使用：发布前 Push 预热关键资源，日常请求由 Pull 兜底；内容更新时用 Purge 清除旧版本。&lt;/p&gt;
+&lt;p&gt;通过以上方式，全球节点可在一定时间内达到数据的最终一致性。&lt;/p&gt;
+&lt;h3&gt;4.2 缓存命中率&lt;span class="hx:absolute hx:-mt-20" id="42-缓存命中率"&gt;&lt;/span&gt;
+&lt;a href="#42-%e7%bc%93%e5%ad%98%e5%91%bd%e4%b8%ad%e7%8e%87" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;缓存命中率是衡量 CDN 效果的核心指标，指命中缓存的请求占总请求的比例。命中率越高，回源流量越少，加速效果越好。&lt;/p&gt;
+&lt;p&gt;影响命中率的主要因素：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;TTL 设置&lt;/strong&gt;：TTL 过短导致频繁回源，过长则内容陈旧&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;缓存键设计&lt;/strong&gt;：URL 规则、是否忽略查询参数（如 &lt;code&gt;?v=1&lt;/code&gt; 与 &lt;code&gt;?v=2&lt;/code&gt; 是否分开缓存）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;URL 可缓存性&lt;/strong&gt;：动态参数过多、URL 变体过多会分散缓存&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;预热策略&lt;/strong&gt;：Push 预热可提升首次访问命中率&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;节点容量&lt;/strong&gt;：节点存储空间不足时，LRU 淘汰会降低命中率&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;4.3 缓存控制相关 Header&lt;span class="hx:absolute hx:-mt-20" id="43-缓存控制相关-header"&gt;&lt;/span&gt;
+&lt;a href="#43-%e7%bc%93%e5%ad%98%e6%8e%a7%e5%88%b6%e7%9b%b8%e5%85%b3-header" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;通过 HTTP 响应头控制节点与浏览器的缓存行为：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Cache-Control: max-age=N&lt;/code&gt;：缓存有效期（秒），优先级高于 Expires&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Cache-Control: no-cache&lt;/code&gt;：每次需向源站验证（配合 ETag）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Cache-Control: no-store&lt;/code&gt;：禁止缓存&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Expires&lt;/code&gt;：指定绝对过期时间&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ETag&lt;/code&gt; / &lt;code&gt;If-None-Match&lt;/code&gt;：协商缓存，304 响应体为空&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;5. 内容安全：防盗版与防盗链&lt;span class="hx:absolute hx:-mt-20" id="5-内容安全防盗版与防盗链"&gt;&lt;/span&gt;
+&lt;a href="#5-%e5%86%85%e5%ae%b9%e5%ae%89%e5%85%a8%e9%98%b2%e7%9b%97%e7%89%88%e4%b8%8e%e9%98%b2%e7%9b%97%e9%93%be" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;防止 CDN 缓存内容被非法使用，需要从两个层面区分理解：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;防盗版&lt;/strong&gt;：防止内容本身被复制、解密、二次传播（针对内容数据本身）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;防盗链&lt;/strong&gt;：防止资源 URL 被第三方站点直接引用，消耗己方流量（针对访问来源）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;5.1 防盗版（内容保护）&lt;span class="hx:absolute hx:-mt-20" id="51-防盗版内容保护"&gt;&lt;/span&gt;
+&lt;a href="#51-%e9%98%b2%e7%9b%97%e7%89%88%e5%86%85%e5%ae%b9%e4%bf%9d%e6%8a%a4" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;内容加密&lt;/strong&gt;：对内容本身加密（如 HLS/DASH 加密、DRM），仅合法客户端可解密&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;数字水印&lt;/strong&gt;：嵌入水印追踪盗版来源，便于事后溯源&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;5.2 防盗链（访问控制）&lt;span class="hx:absolute hx:-mt-20" id="52-防盗链访问控制"&gt;&lt;/span&gt;
+&lt;a href="#52-%e9%98%b2%e7%9b%97%e9%93%be%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;URL 鉴权（Token 防盗链）&lt;/strong&gt;：通过时间戳 + 密钥生成签名 URL，仅携带有效签名的请求可访问，过期失效&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Referer 校验&lt;/strong&gt;：检查请求来源，仅允许来自合法页面/域名的请求&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;IP 黑白名单&lt;/strong&gt;：直接拦截或放行指定 IP&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;并发连接数限制&lt;/strong&gt;：限制单 IP 或单用户的并发数，防刷量&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;地理访问限制（Geo Restriction）&lt;/strong&gt;：按地域放行或屏蔽&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;短 TTL&lt;/strong&gt;：设置较短有效期，降低 URL 被长期盗用的风险&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="mermaid"&gt;
+flowchart TD
+A[内容安全防护] --&gt; B[内容层:加密/水印]
+A --&gt; C[访问层:URL签名/Token鉴权]
+A --&gt; D[来源层:Referer校验/IP黑白名单]
+A --&gt; E[策略层:TTL/并发限制/地理限制]
+&lt;/div&gt;
+&lt;p&gt;实际部署中，访问层与来源层手段常叠加使用，形成纵深防御。&lt;/p&gt;
+&lt;h2&gt;6. 动态数据处理与动态加速&lt;span class="hx:absolute hx:-mt-20" id="6-动态数据处理与动态加速"&gt;&lt;/span&gt;
+&lt;a href="#6-%e5%8a%a8%e6%80%81%e6%95%b0%e6%8d%ae%e5%a4%84%e7%90%86%e4%b8%8e%e5%8a%a8%e6%80%81%e5%8a%a0%e9%80%9f" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;h3&gt;6.1 动态内容为何不能直接缓存&lt;span class="hx:absolute hx:-mt-20" id="61-动态内容为何不能直接缓存"&gt;&lt;/span&gt;
+&lt;a href="#61-%e5%8a%a8%e6%80%81%e5%86%85%e5%ae%b9%e4%b8%ba%e4%bd%95%e4%b8%8d%e8%83%bd%e7%9b%b4%e6%8e%a5%e7%bc%93%e5%ad%98" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;动态数据（如订单查询、实时库存、个性化推荐）每次返回结果不同，不适合在 CDN 长期缓存。传统做法是请求透传回源，但跨地域回源本身存在延迟。&lt;/p&gt;
+&lt;h3&gt;6.2 动态加速&lt;span class="hx:absolute hx:-mt-20" id="62-动态加速"&gt;&lt;/span&gt;
+&lt;a href="#62-%e5%8a%a8%e6%80%81%e5%8a%a0%e9%80%9f" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;现代 CDN（如阿里云 DCDN、Cloudflare Argo、AWS CloudFront）提供&lt;strong&gt;动态加速&lt;/strong&gt;能力，不止于静态缓存：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;网络路径优化&lt;/strong&gt;：利用 CDN 内部骨干网络，选择更优回源路径&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;TCP 连接复用&lt;/strong&gt;：边缘节点与源站保持长连接，减少握手开销&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;智能路由（GSLB）&lt;/strong&gt;：根据实时链路状况选择最优回源路径，保障响应速度与可用性&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;对于动态请求，CDN 的角色从&amp;quot;缓存层&amp;quot;变为&amp;quot;网络加速层 + 智能路由层&amp;quot;。&lt;/p&gt;
+&lt;h2&gt;7. GSLB 全局负载均衡&lt;span class="hx:absolute hx:-mt-20" id="7-gslb-全局负载均衡"&gt;&lt;/span&gt;
+&lt;a href="#7-gslb-%e5%85%a8%e5%b1%80%e8%b4%9f%e8%bd%bd%e5%9d%87%e8%a1%a1" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;GSLB（Global Server Load Balancing）是 CDN 实现&amp;quot;就近访问&amp;quot;的核心调度组件，通常基于 DNS 智能解析实现：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;接收用户 DNS 查询后，综合用户地理位置、节点负载、链路质量、运营商等因素&lt;/li&gt;
+&lt;li&gt;返回最优边缘节点的 IP，而非固定 IP&lt;/li&gt;
+&lt;li&gt;也可通过 HTTP 302 重定向实现更精细的调度&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="mermaid"&gt;
+flowchart LR
+A[用户 DNS 查询] --&gt; B[GSLB 调度决策]
+B --&gt; C[用户位置]
+B --&gt; D[节点负载]
+B --&gt; E[链路质量]
+B --&gt; F[运营商]
+C &amp; D &amp; E &amp; F --&gt; G[返回最优边缘节点 IP]
+&lt;/div&gt;
+&lt;p&gt;GSLB 的调度策略直接影响命中率与用户体验，是 CDN 厂商调度能力的核心体现。&lt;/p&gt;
+&lt;h2&gt;8. HTTPS 与 SSL 支持&lt;span class="hx:absolute hx:-mt-20" id="8-https-与-ssl-支持"&gt;&lt;/span&gt;
+&lt;a href="#8-https-%e4%b8%8e-ssl-%e6%94%af%e6%8c%81" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;CDN 边缘节点提供 HTTPS 终结能力，是现代 CDN 的标配功能：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;证书托管&lt;/strong&gt;：在边缘节点部署 SSL 证书，由节点与用户建立 HTTPS 连接&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;回源协议&lt;/strong&gt;：节点到源站可选择 HTTPS 或 HTTP（回源加密）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;协议优化&lt;/strong&gt;：支持 HTTP/2、HTTP/3（QUIC），提升传输效率&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;会话复用&lt;/strong&gt;：TLS 会话票据、0-RTT 等减少握手开销&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;典型链路为：用户 →（HTTPS）→ 边缘节点 →（HTTP 或 HTTPS）→ 源站。边缘节点承担证书管理与加解密开销，源站压力降低。&lt;/p&gt;
+&lt;h2&gt;9. 接入方式&lt;span class="hx:absolute hx:-mt-20" id="9-接入方式"&gt;&lt;/span&gt;
+&lt;a href="#9-%e6%8e%a5%e5%85%a5%e6%96%b9%e5%bc%8f" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;将业务接入 CDN 常见两种方式：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;接入方式&lt;/th&gt;
+&lt;th&gt;说明&lt;/th&gt;
+&lt;th&gt;特点&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;CNAME 接入&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;域名 CNAME 指向 CDN 调度域名&lt;/td&gt;
+&lt;td&gt;最常用，调度灵活，需修改 DNS&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;NS 接入&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;将域名 NS 整体托管到 CDN 厂商&lt;/td&gt;
+&lt;td&gt;调度更彻底，由 CDN 厂商接管 DNS&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;CNAME 接入适用于子域名加速（如 &lt;code&gt;img.example.com&lt;/code&gt;）；NS 接入适用于全站加速，将整个域名的解析交给 CDN。&lt;/p&gt;
+&lt;h2&gt;10. 秒杀场景中 CDN 的作用&lt;span class="hx:absolute hx:-mt-20" id="10-秒杀场景中-cdn-的作用"&gt;&lt;/span&gt;
+&lt;a href="#10-%e7%a7%92%e6%9d%80%e5%9c%ba%e6%99%af%e4%b8%ad-cdn-%e7%9a%84%e4%bd%9c%e7%94%a8" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;秒杀的核心挑战是短时间高并发下保证先到先得、不超卖、不重复下单。CDN 本身处理静态资源，秒杀的动态交易逻辑需全链路配合，但 CDN 在其中承担关键的&amp;quot;前置卸载&amp;quot;角色。&lt;/p&gt;
+&lt;h3&gt;10.1 CDN 层职责&lt;span class="hx:absolute hx:-mt-20" id="101-cdn-层职责"&gt;&lt;/span&gt;
+&lt;a href="#101-cdn-%e5%b1%82%e8%81%8c%e8%b4%a3" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;静态资源 CDN 化&lt;/strong&gt;：秒杀商品详情页、JS/CSS、图片提前缓存到 CDN，减少源站压力&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;边缘限流与风控&lt;/strong&gt;：在边缘节点做 IP 频率限制、恶意请求拦截，挡住无效流量&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;预热&lt;/strong&gt;：活动前 Push 预热静态资源，确保命中率&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;10.2 全链路配合&lt;span class="hx:absolute hx:-mt-20" id="102-全链路配合"&gt;&lt;/span&gt;
+&lt;a href="#102-%e5%85%a8%e9%93%be%e8%b7%af%e9%85%8d%e5%90%88" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;秒杀的&amp;quot;先后问题&amp;quot;本质是并发下的顺序一致性，CDN 卸载静态流量后，后端通过以下分层方案保障公平与一致性：&lt;/p&gt;
+&lt;div class="mermaid"&gt;
+flowchart LR
+A[前端限流] --&gt; B[CDN 边缘拦截]
+B --&gt; C[接入层排队]
+C --&gt; D[消息队列串行化]
+D --&gt; E[Redis 原子扣减]
+E --&gt; F[数据库乐观锁]
+A2[按钮置灰/倒计时] -.-&gt; A
+A3[幂等去重] -.-&gt; E
+&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;前端&lt;/strong&gt;：按钮置灰、倒计时，防止重复点击&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;排队机制&lt;/strong&gt;：接入层将请求按到达顺序放入 MQ（Kafka、RocketMQ），先到先排队；通过一致性哈希将同一商品路由到同一队列，避免并发写冲突&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;令牌限流&lt;/strong&gt;：Redis 中原子递减库存令牌（&lt;code&gt;DECR&lt;/code&gt;），令牌耗尽直接返回&amp;quot;已售罄&amp;quot;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;串行化处理&lt;/strong&gt;：后端从 MQ 按序消费，单线程或分片串行处理下单&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;数据层&lt;/strong&gt;：Redis 原子扣减保证库存原子性，数据库乐观锁（版本号）或悲观锁（行锁）防止超卖&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;幂等性&lt;/strong&gt;：每个请求携带唯一 ID，服务端去重&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;公平性&lt;/strong&gt;：服务端时间统一校准，风控识别机器刷票与黄牛&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;10.3 总结&lt;span class="hx:absolute hx:-mt-20" id="103-总结"&gt;&lt;/span&gt;
+&lt;a href="#103-%e6%80%bb%e7%bb%93" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;通过&amp;quot;静态资源 CDN 扛量 + 边缘限流 + 令牌削峰 + 消息队列排队串行 + Redis/DB 原子扣减 + 幂等风控&amp;quot;的分层方案，既保证先到先得的公平性，又避免后端被高并发打垮。&lt;/p&gt;
+&lt;h2&gt;11. 关键指标小结&lt;span class="hx:absolute hx:-mt-20" id="11-关键指标小结"&gt;&lt;/span&gt;
+&lt;a href="#11-%e5%85%b3%e9%94%ae%e6%8c%87%e6%a0%87%e5%b0%8f%e7%bb%93" class="subheading-anchor" aria-label="此章节的永久链接"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;衡量 CDN 运营效果的核心指标：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;指标&lt;/th&gt;
+&lt;th&gt;含义&lt;/th&gt;
+&lt;th&gt;优化方向&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;缓存命中率&lt;/td&gt;
+&lt;td&gt;命中缓存的请求占比&lt;/td&gt;
+&lt;td&gt;TTL、缓存键、预热&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;回源率&lt;/td&gt;
+&lt;td&gt;未命中需回源的请求占比&lt;/td&gt;
+&lt;td&gt;与命中率互补&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;首字节时间（TTFB）&lt;/td&gt;
+&lt;td&gt;首字节到达时间&lt;/td&gt;
+&lt;td&gt;节点部署、调度优化&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;下载速度&lt;/td&gt;
+&lt;td&gt;资源传输速率&lt;/td&gt;
+&lt;td&gt;节点带宽、协议优化&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;可用性&lt;/td&gt;
+&lt;td&gt;节点服务可用比例&lt;/td&gt;
+&lt;td&gt;多节点冗余、故障切换&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;</description></item></channel></rss>
