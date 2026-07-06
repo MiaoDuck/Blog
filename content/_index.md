@@ -14,16 +14,23 @@ description = '记录与分享后端、架构与基础设施的学习笔记'
   </div>
 </div>
 
-<!-- {{/* 未来新增栏目时，在此处添加卡片，格式如下：
-<div class="series-card" onclick="window.location.href='/docs/<栏目>/'">
-  <div class="series-icon">图标</div>
+<div class="series-card" onclick="window.location.href='/docs/ai/'">
+  <div class="series-icon">🤖</div>
   <div class="series-content">
-    <h3 class="series-title">标题</h3>
-    <p class="series-desc">描述文字</p>
-    <span class="series-count">已收录 N 篇</span>
+    <h3 class="series-title">AI</h3>
+    <p class="series-desc">AI 与 Agent 相关学习笔记，包括大模型应用、智能体架构与实践</p>
+    <span class="series-count">已收录文章</span>
   </div>
 </div>
-*/}} -->
+
+<div class="series-card" onclick="window.location.href='/docs/middleware/'">
+  <div class="series-icon">🧩</div>
+  <div class="series-content">
+    <h3 class="series-title">中间件</h3>
+    <p class="series-desc">消息队列、缓存、搜索等后端基础设施，如 RabbitMQ、Redis、Elasticsearch</p>
+    <span class="series-count">已收录文章</span>
+  </div>
+</div>
 
 </div>
 

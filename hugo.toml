@@ -29,14 +29,26 @@ enableInlineShortcodes = true
   weight = 1
 
 [[menu.main]]
-  name = "搜索"
+  identifier = "ai"
+  name = "AI"
+  pageRef = "/docs/ai"
   weight = 2
+
+[[menu.main]]
+  identifier = "middleware"
+  name = "中间件"
+  pageRef = "/docs/middleware"
+  weight = 3
+
+[[menu.main]]
+  name = "搜索"
+  weight = 4
   [menu.main.params]
     type = "search"
 
 [[menu.main]]
   name = "GitHub"
-  weight = 3
+  weight = 5
   url = "https://github.com/MiaoDuck/Blog"
   [menu.main.params]
     icon = "github"
